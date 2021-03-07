@@ -1,0 +1,20 @@
+[
+  {
+    "startLocation": "Praha",
+    "endLocation": "Brno",
+    "transportMethod": "Truck",
+    "deliveryCompany": "Correios"
+  },
+  {
+    "startLocation": "Ostrava",
+    "endLocation": "Olomouc",
+    "transportMethod": "Flight",
+    "deliveryCompany": "LATAM"
+  },
+  {
+    "startLocation": "Brno",
+    "endLocation": "Ostrava",
+    "transportMethod": "Van",
+    "deliveryCompany": "AnyVan"
+  }
+]
