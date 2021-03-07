@@ -10,6 +10,7 @@ namespace App\Tracker;
 
 
 use App\Tracker\Entity\TrackEntity;
+use App\Tracker\Exception\JsonFormatException;
 
 class BananaTracker
 {
@@ -20,31 +21,34 @@ class BananaTracker
     /**
      * @param string $json
      * @return bool
+     * @throws JsonFormatException
      */
     public function loadTracks(string $json) : bool
     {
         $this->tracks = [];
 
-        $jsonDecoded = json_decode($json, true);
+        $jsonDecoded = json_decode($json);
 
         if(json_last_error() !== JSON_ERROR_NONE || empty($jsonDecoded)){
             return false;
         }
 
         if(is_object($jsonDecoded)){
+            $this->validateJsonRecord($jsonDecoded);
             $track = new TrackEntity();
-            $track->setStartLocation($jsonDecoded["startLocation"])
-                ->setEndLocation($jsonDecoded["endLocation"])
-                ->setTransportMethod($jsonDecoded["transportMethod"]?? "unknown")
-                ->setDeliveryCompany($jsonDecoded["deliveryCompany"]?? "unknown");
+            $track->setStartLocation($jsonDecoded->startLocation)
+                ->setEndLocation($jsonDecoded->endLocation)
+                ->setTransportMethod($jsonDecoded->transportMethod?? "unknown")
+                ->setDeliveryCompany($jsonDecoded->deliveryCompany?? "unknown");
             $this->tracks[$track->getEndLocation()] = $track;
         }else{
             foreach ($jsonDecoded as $record){
+                $this->validateJsonRecord($record);
                 $track = new TrackEntity();
-                $track->setStartLocation($record["startLocation"])
-                    ->setEndLocation($record["endLocation"])
-                    ->setTransportMethod($record["transportMethod"]?? "unknown")
-                    ->setDeliveryCompany($record["deliveryCompany"]?? "unknown");
+                $track->setStartLocation($record->startLocation)
+                    ->setEndLocation($record->endLocation)
+                    ->setTransportMethod($record->transportMethod?? "unknown")
+                    ->setDeliveryCompany($record->deliveryCompany?? "unknown");
                 $this->tracks[$track->getEndLocation()] = $track;
             }
         }
@@ -112,6 +116,21 @@ class BananaTracker
                 $step->getEndLocation(),
                 $step->getTransportMethod(),
                 $step->getDeliveryCompany());
+        }
+    }
+
+    /**
+     * @param array $record
+     * @throws JsonFormatException
+     */
+    private function validateJsonRecord(\stdClass $record)
+    {
+        if(empty($record->startLocation)){
+            throw new JsonFormatException("Missing start location");
+        }
+
+        if(empty($record->endLocation)){
+            throw new JsonFormatException("Missing end location");
         }
     }
 }
